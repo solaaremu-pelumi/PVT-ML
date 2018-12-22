@@ -9,6 +9,9 @@ Created on Mon Dec 17 18:30:31 2018
 
 import tkinter as tk
 from tkinter import ttk
+from datetime import datetime
+import os
+import csv
             
 class LabelInput(tk.Frame):
     """A widget containing a label and input together"""
@@ -29,7 +32,6 @@ class LabelInput(tk.Frame):
             
         self.input= input_class(self,**input_args)
         self.input.grid(row=0,column=1,sticky=(tk.W+tk.E))
-        print(self.input.grid(row=0,column=1,sticky=(tk.W+tk.E)))
         self.columnconfigure(0,weight=1)
             
     def grid(self,sticky=(tk.E+tk.W),**kwargs):
@@ -78,6 +80,25 @@ class CompositionInput(tk.Frame):
         self.inputs['C1'].grid(row=0,column=0)
         self.inputs["C2"]=LabelInput(composition,label="C2",input_args={"from_":0.00,"to":100.0,"increment":0.01},input_var=tk.DoubleVar())
         self.inputs["C2"].grid(row=1,column=0)
+        self.inputs["C3"]=LabelInput(composition,label="C3",input_args={"from_":0.00,"to":100.0,"increment":0.01},input_var=tk.DoubleVar())
+        self.inputs["C3"].grid(row=2,column=0)
+        self.inputs["IC4"]=LabelInput(composition,label="IC4",input_args={"from_":0.00,"to":100.0,"increment":0.01},input_var=tk.DoubleVar())
+        self.inputs["IC4"].grid(row=3,column=0)
+        self.inputs["NC4"]=LabelInput(composition,label="NC4",input_args={"from_":0.00,"to":100.0,"increment":0.01},input_var=tk.DoubleVar())
+        self.inputs["NC4"].grid(row=4,column=0)
+        self.inputs["IC5"]=LabelInput(composition,label="IC5",input_args={"from_":0.00,"to":100.0,"increment":0.01},input_var=tk.DoubleVar())
+        self.inputs["IC5"].grid(row=5,column=0)
+        self.inputs["NC5"]=LabelInput(composition,label="NC5",input_args={"from_":0.00,"to":100.0,"increment":0.01},input_var=tk.DoubleVar())
+        self.inputs["NC5"].grid(row=6,column=0)
+        self.inputs["C6"]=LabelInput(composition,label="C6",input_args={"from_":0.00,"to":100.0,"increment":0.01},input_var=tk.DoubleVar())
+        self.inputs["C6"].grid(row=7,column=0)
+        self.inputs["C7+"]=LabelInput(composition,label="C7+",input_args={"from_":0.00,"to":100.0,"increment":0.01},input_var=tk.DoubleVar())
+        self.inputs["C7+"].grid(row=8,column=0)
+        self.inputs["MW"]=LabelInput(composition,label="MW",input_args={"from_":0.00,"to":500.0,"increment":0.01},input_var=tk.DoubleVar())
+        self.inputs["MW"].grid(row=9,column=0)
+        self.inputs["MW(C7+)"]=LabelInput(composition,label="MW(C7+)",input_args={"from_":0.00,"to":500.0,"increment":0.01},input_var=tk.DoubleVar())
+        self.inputs["MW(C7+)"].grid(row=10,column=0)
+        composition.grid(row=0,column=0)
         self.reset()
         
     def get(self):
@@ -106,6 +127,22 @@ class my_application(tk.Tk):
         self.cruise=CompositionInput(self)
         self.cruise.grid(row=0, padx=10)
         
+        self.predict=ttk.Button(self,text="Predict",command=self.on_predict)
+        self.predict.grid(row=1,sticky=(tk.W+tk.E))
+        
+    def on_predict(self):
+        datestring=datetime.today().strftime("%Y-%m-%d")
+        filename="PVT_ML_{}.csv".format(datestring)
+        newfile= not os.path.exists(filename)
+        data=self.cruise.get()
+        with open(filename,'a') as fh:
+            csvwriter=csv.DictWriter(fh,fieldnames=data.keys())
+            if newfile:
+                csvwriter.writeheader()
+            csvwriter.writerow(data)
+        self.cruise.reset()
+        return data
+    
 if __name__ == "__main__":
     app=my_application()
     app.mainloop()
