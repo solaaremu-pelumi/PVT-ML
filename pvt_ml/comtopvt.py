@@ -193,56 +193,39 @@ class CompositionInput(tk.Frame):
         self.inputs["MW"].grid(row=9,column=0)
         self.inputs["MW(C7+)"]=LabelInput(composition,label="MW(C7+)",input_args={"from_":0.00,"to":500.0,"increment":0.01},input_var=tk.DoubleVar())
         self.inputs["MW(C7+)"].grid(row=10,column=0)
-        composition.grid(row=0,column=0)
+        composition.grid(row=1,column=0)
+
+        self.selection={}
+        predict_choice=tk.LabelFrame(self,text="Selection")
+        predict_desc=ttk.Label(predict_choice, text="PVT Properties to be predicted")
+        predict_desc.grid(row=0,column=0,columnspan=2,sticky=tk.W)
+        self.selection["bub_point"]=LabelInput(predict_choice,label="Bubble Point",input_class=ttk.Checkbutton,input_var=tk.BooleanVar())
+        self.selection["bub_point"].grid(row=1,column=0)
+        self.selection["sol_ratio"]=LabelInput(predict_choice,label="Solution Gas Oil Ratio",input_class=ttk.Checkbutton,input_var=tk.BooleanVar())
+        self.selection["sol_ratio"].grid(row=1,column=1)
+        self.selection["oil_visc"]=LabelInput(predict_choice,input_class=ttk.Checkbutton,label="Oil Viscosity",input_var=tk.BooleanVar())
+        self.selection["oil_visc"].grid(row=2,column=0)
+        self.selection["fvf"]=LabelInput(predict_choice,input_class=ttk.Checkbutton,label="Formation Volume Factor",input_var=tk.BooleanVar())
+        self.selection["fvf"].grid(row=2,column=1)
+        predict_choice.grid(row=0,column=0)
+
         self.reset()
-        
+
     def get(self):
         data={}
         for key,widget in self.inputs.items():
             data[key]=widget.get()
         return data
     
+    def gett(self):
+        select={}
+        for key,widget in self.selection.items():
+            select[key]=widget.get()
+        return select
+        
     def reset(self):
         for widget in self.inputs.values():
             widget.set('')
-            
-
-
-
-
-        
-class my_application(tk.Tk):
-    """XPVT ML"""
+        for widget in self.selection.values():
+            widget.set('')
     
-    def __init__(self,*args,**kwargs):
-        super().__init__(*args,**kwargs)
-        
-        self.title("PVT ML")
-        self.geometry("400x300")
-        self.resizable(width=False,height=False)
-        
-        #Defining the UI
-        self.cruise=CompositionInput(self)
-        self.cruise.grid(row=0, padx=10)
-        
-        self.predict=ttk.Button(self,text="Predict",command=self.on_predict)
-        self.predict.grid(row=1,sticky=(tk.W+tk.E))
-        
-    def on_predict(self):
-        datestring=datetime.today().strftime("%Y-%m-%d")
-        filename="PVT_ML_{}.csv".format(datestring)
-        newfile= not os.path.exists(filename)
-        data=self.cruise.get()
-        with open(filename,'a') as fh:
-            csvwriter=csv.DictWriter(fh,fieldnames=data.keys())
-            if newfile:
-                csvwriter.writeheader()
-            csvwriter.writerow(data)
-        self.cruise.reset()
-        return data
-    
-if __name__ == "__main__":
-    app=my_application()
-    app.mainloop()
-            
-        

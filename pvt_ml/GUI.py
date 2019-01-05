@@ -9,7 +9,7 @@ class my_frame(tk.Frame):
     def __init__(self,parent,*args,**kwargs):
         super().__init__(parent,*args,**kwargs)
         
-        #Widgets
+        #Widgetsgit 
         use_label=ttk.Label(self, text='Username:')
         pass_label=ttk.Label(self, text='Password:')
         use_entry=ttk.Entry(self)
