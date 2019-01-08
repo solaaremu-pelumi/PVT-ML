@@ -34,26 +34,69 @@ class Reservoir():
     def __init__(self,data=None,select=None,frame=None,*args,**kwargs):
         self.data=data
         self.select=select
+        self.value= np.fromiter(self.data.values(), dtype=float).reshape(1,13)
         self.result={}
         
     def bub_point_pre_process(self):
-        if self.select["PB psi"]!=True:
+        if self.select["bub_point"]!=True:
             pass
         else:
             self.frame_bub=self.pre_process(action=self.npdc,element="PB psi")
             return self.frame_bub
         
+    def form_fact_preprocess(self):
+        if self.select["fvf"]!=True:
+            pass
+        else:
+            self.frame_form=self.pre_process(action=self.df,element="Boi v/v")
+        return self.frame_form
+    
+    def sol_gas_rat_preprocess(self):
+        if self.select["sol_ratio"] != True:
+            pass
+        else:
+            self.frame_sol=self.pre_process(action=self.df,element="RSI scf/bbl")
+        return self.frame_sol
+
     def bub_point_train(self):
         try:
             self.frame_bub=self.bub_point_pre_process()
             framex_train, framex_test, framey_train, framey_test=tts((self.frame_bub.iloc[:,:-1]),self.frame_bub.iloc[:,-1],test_size=0.2, random_state=123)
             model=ElasticNet()
             model.fit(framex_train,framey_train)
-            value= np.fromiter(self.data.values(), dtype=float).reshape(1,13)
-            print(model.predict(value))
+            print(model.predict(self.value))
         except:
             pass
-   
+        
+    def form_fact_train(self):
+        try:
+           self.frame_form=self.form_fact_preprocess()
+           framex_train, framex_test, framey_train, framey_test=tts((self.frame_form.iloc[:,:-1]),self.frame_form.iloc[:,-1],test_size=0.2, random_state=123)
+           framey_train_run=np.log10(framey_train)
+           poly=PolynomialFeatures(2)
+           x=poly.fit_transform(framex_train)
+           ECV=ElasticNet(alpha=2.2,max_iter=100000)
+           ECV.fit(x,framey_train_run)
+           values=poly.fit_transform(self.value)
+           bub_pred=ECV.predict(values)
+           bub_pred=10**(bub_pred)
+           print(bub_pred)
+        except:
+            pass
+    
+    def sol_gas_rat_train(self):
+        try:
+            self.frame_sol=self.sol_gas_rat_preprocess()
+            framex_train, framex_test, framey_train, framey_test=tts((self.frame_sol.iloc[:,:-1]),self.frame_sol.iloc[:,-1],test_size=0.2, random_state=123)
+            poly=PolynomialFeatures(2)
+            y=poly.fit_transform(framex_train)
+            ECV=ElasticNet(alpha=350,max_iter=1000000)
+            ECV.fit(y,framey_train)
+            value_sol=poly.fit_transform(self.value)
+            print(ECV.predict(value_sol))
+        except:
+            pass
+        
     def pre_process(self,action,element):
         x=[]
         frame=action.copy(deep=True)
